@@ -8,7 +8,15 @@ import (
 	"github.com/mrxinu/gosolar"
 )
 
+/*
+func main() {
+	solarClient()
+}
+*/
+
 func solarClient() {
+  fmt.Printf("hello, world from swis\n")
+
 	hostname := "localhost"
 	username := "admin"
 	password := ""
