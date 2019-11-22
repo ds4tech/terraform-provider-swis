@@ -8,24 +8,8 @@ import (
 func Provider() terraform.ResourceProvider {
   return &schema.Provider{
     ResourcesMap: map[string]*schema.Resource{
-      "example_server": resourceServer(),
+      "swis_server": resourceServer(),
+	    "swis_query": resourceQuery(),
     },
   }
 }
-
-/*
-func Provider() terraform.ResourceProvider {
-	return &schema.Provider{
-		Schema: map[string]*schema.Schema{
-
-			"user": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The user name of the AD Server",
-				DefaultFunc: schema.EnvDefaultFunc("AD_USER", nil),
-			},
-		},
-
-	}
-}
-*/

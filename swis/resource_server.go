@@ -2,7 +2,6 @@ package swis
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
-  //"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceServer() *schema.Resource {
@@ -14,6 +13,18 @@ func resourceServer() *schema.Resource {
 
                 Schema: map[string]*schema.Schema{
                         "address": &schema.Schema{
+                                Type:     schema.TypeString,
+                                Required: true,
+                        },
+                        "port": &schema.Schema{
+                                Type:     schema.TypeString,
+                                Required: true,
+                        },
+                        "username": &schema.Schema{
+                                Type:     schema.TypeString,
+                                Required: true,
+                        },
+                        "password": &schema.Schema{
                                 Type:     schema.TypeString,
                                 Required: true,
                         },
