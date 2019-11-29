@@ -6,10 +6,10 @@ import (
 
 func resourceQuery() *schema.Resource {
         return &schema.Resource{
-                Create: resourceQueryCreate,
-                Read:   resourceQueryRead,
-                Update: resourceQueryUpdate,
-                Delete: resourceQueryDelete,
+                Create: resourceExampleCreate,
+                Read:   resourceExampleRead,
+                Update: resourceExampleUpdate,
+                Delete: resourceExampleDelete,
 
                 Schema: map[string]*schema.Schema{
                         "query": &schema.Schema{
