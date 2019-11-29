@@ -8,8 +8,8 @@ import (
 func Provider() terraform.ResourceProvider {
   return &schema.Provider{
     ResourcesMap: map[string]*schema.Resource{
-      "swis_server": resourceServer(),
-	    "swis_query": resourceQuery(),
+			"swis_server": resourceServer(),
+//			"swis_example": resourceExample(),
     },
   }
 }
