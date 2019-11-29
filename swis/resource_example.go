@@ -20,23 +20,23 @@ func resourceQuery() *schema.Resource {
         }
 }
 
-func resourceQueryCreate(d *schema.ResourceData, m interface{}) error {
+func resourceExampleCreate(d *schema.ResourceData, m interface{}) error {
     query := d.Get("query").(string)
     d.SetId(query + " from czlowiek")
     return resourceServerRead(d, m)
 }
 
-func resourceQueryRead(d *schema.ResourceData, m interface{}) error {
+func resourceExampleRead(d *schema.ResourceData, m interface{}) error {
     return nil
 }
 
-func resourceQueryUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceExampleUpdate(d *schema.ResourceData, m interface{}) error {
     query := d.Get("query").(string)
     d.SetId(query)
     return resourceServerRead(d, m)
 }
 
-func resourceQueryDelete(d *schema.ResourceData, m interface{}) error {
+func resourceExampleDelete(d *schema.ResourceData, m interface{}) error {
     d.SetId("")
     return nil
 }
