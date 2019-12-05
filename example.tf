@@ -1,28 +1,22 @@
-resource "swis_server" "orion" {
-  hostname = var.orion_host
-  ipaddress = var.ipaddress
-  username = var.orion_username
-  password = var.orion_userpass
-  status = var.status
+resource "swis_server" "ip1" {
+  vsphere_vlan = var.vsphere_vlan
+#  ipaddress = var.ipaddress
+#  status = var.status
 }
 
 
-variable "orion_host" {
-  default = "10.50.8.10"
+variable "vsphere_vlan" {
+  default = "VLAN100_10.141.16.0m24"
 }
-variable "orion_username" {
-  default = "centrala\\159435"
-}
-variable "orion_userpass" {
-}
+
+
+#status and ipddress are required for Update action only
 
 variable "ipaddress" {
-  default = "10.141.16.1"
+  type = string
+  default = "10.141.16.11"
 }
 variable "status" {
-  default = "2"
-}
-
-output "ipaddress_status" {
-    value = "${swis_server.orion.status}"
+  type = string
+  default = "4"
 }

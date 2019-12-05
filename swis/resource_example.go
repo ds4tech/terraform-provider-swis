@@ -23,7 +23,7 @@ func resourceQuery() *schema.Resource {
 func resourceExampleCreate(d *schema.ResourceData, m interface{}) error {
     query := d.Get("query").(string)
     d.SetId(query + " from czlowiek")
-    return resourceServerRead(d, m)
+    return nil
 }
 
 func resourceExampleRead(d *schema.ResourceData, m interface{}) error {
@@ -33,7 +33,7 @@ func resourceExampleRead(d *schema.ResourceData, m interface{}) error {
 func resourceExampleUpdate(d *schema.ResourceData, m interface{}) error {
     query := d.Get("query").(string)
     d.SetId(query)
-    return resourceServerRead(d, m)
+    return resourceExampleRead(d, m)
 }
 
 func resourceExampleDelete(d *schema.ResourceData, m interface{}) error {
