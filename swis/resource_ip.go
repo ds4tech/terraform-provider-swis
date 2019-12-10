@@ -1,10 +1,8 @@
 package swis
 
 import (
-    "encoding/json"
     "log"
     "fmt"
-    "regexp"
 
     "github.com/hashicorp/terraform/helper/schema"
     "github.com/mrxinu/gosolar"
@@ -42,15 +40,15 @@ func resourceIpCreate(d *schema.ResourceData, m interface{}) error {
     subnetIpAddr := findIP(vsphere_vlan)
     cidr := string(vsphere_vlan[len(vsphere_vlan)-2:]) //substring last 2 chars
 
-    log.Printf("[DEBUG] vsphere_vlan: %s, subnetIpAddr: %s, cidr: %s", vsphere_vlan, subnetIpAddr, cidr)
+    log.Printf("[TRACE] vsphere_vlan: %s, subnetIpAddr: %s, cidr: %s", vsphere_vlan, subnetIpAddr, cidr)
 
     querySubnet := fmt.Sprintf("SELECT  SubnetId,CIDR,Address,AddressMask,GroupTypeText FROM IPAM.Subnet WHERE  Address='%s' AND CIDR=%s", subnetIpAddr, cidr)
-    response = requestAndReply(client, querySubnet)
+    response = queryOrionServer(client, querySubnet)
 
     queryIpnode := fmt.Sprintf("SELECT TOP 1 IpNodeId,IPAddress,Comments,Status,Uri FROM IPAM.IPNode WHERE SubnetId='%d' and status=2 AND IPOrdinal BETWEEN 11 AND 254", response[0].SUBNETID)
-    response = requestAndReply(client, queryIpnode)
+    response = queryOrionServer(client, queryIpnode)
     if(2 == response[0].STATUS) {
-      updateStatus(client, response[0].URI, "1") // '1' == ip used
+      updateIPNodeStatus(client, response[0].URI, "1") // '1' == ip used
       ipaddress = response[0].IPADDRESS
     } else {
       log.Printf("[DEBUG] Ip address is not available for specified subnet.")
@@ -78,10 +76,10 @@ func resourceIpUpdate(d *schema.ResourceData, m interface{}) error {
     }
 
     query := fmt.Sprintf("SELECT IpNodeId,IPAddress,Comments,Status,Uri FROM IPAM.IPNode WHERE IPAddress='%s'", ipaddress)
-    response = requestAndReply(client, query)
+    response = queryOrionServer(client, query)
 
     log.Printf("[DEBUG] response: %s, %s", response[0], status)
-    updateStatus(client, response[0].URI, status)
+    updateIPNodeStatus(client, response[0].URI, status)
 
     //d.Set("ipaddress", ipaddress)
     d.SetId(ipaddress)
@@ -94,51 +92,9 @@ func resourceIpDelete(d *schema.ResourceData, m interface{}) error {
     var response []*Node
 
     query := fmt.Sprintf("SELECT IpNodeId,IPAddress,Comments,Status,Uri FROM IPAM.IPNode WHERE IPAddress='%s'", ipaddress)
-    response = requestAndReply(client, query)
-    updateStatus(client, response[0].URI, "2") // '2' == ip available
+    response = queryOrionServer(client, query)
+    updateIPNodeStatus(client, response[0].URI, "2") // '2' == ip available
 
     d.SetId("")
     return nil
-}
-
-
-// Node struct holds query results
-type Node struct {
-    IPNODEID int `json:"ipnodeid"` //not used
-    SUBNETID int `json:"subnetid"`
-    STATUS int `json:"status"`
-    IPADDRESS string `json:"ipaddress"`
-    COMMENTS string `json:"comments"` //not used
-    URI string `json:"uri"`
-}
-
-
-func requestAndReply(client * gosolar.Client, query string) []*Node {
-    var data []*Node
-    ipNodeDetails, err := client.Query(query, nil)
-    if err != nil {
-            log.Fatal(err)
-    }
-    if err := json.Unmarshal(ipNodeDetails, &data); err != nil {
-            log.Fatal(err)
-    }
-    return data
-}
-
-func updateStatus(client * gosolar.Client, uri string, status string) {
-    req := map[string]interface{}{
-            "Status": status,
-    }
-    _, err := client.Update(uri, req)
-    if err != nil {
-            log.Fatal(err)
-    }
-}
-
-func findIP(input string) string {
-   numBlock := "(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])"
-   regexPattern := numBlock + "\\." + numBlock + "\\." + numBlock + "\\." + numBlock
-
-   regEx := regexp.MustCompile(regexPattern)
-   return regEx.FindString(input)
 }

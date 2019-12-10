@@ -30,18 +30,18 @@ func Provider() terraform.ResourceProvider {
 									DefaultFunc: schema.EnvDefaultFunc("ORION_PASSWORD", nil),
 					},
 		},
-    ResourcesMap: map[string]*schema.Resource{
+		ResourcesMap: map[string]*schema.Resource{
 					"swis_server": resourceIp(),
-//			"swis_example": resourceExample(),
-    },
+		//			"swis_example": resourceExample(),
+		},
 		ConfigureFunc: providerConfigure,
 		}
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-    host := d.Get("hostname").(string)
-    username := d.Get("username").(string)
-    password := d.Get("password").(string)
+		host := d.Get("hostname").(string)
+		username := d.Get("username").(string)
+		password := d.Get("password").(string)
 		var client * gosolar.Client = gosolar.NewClient(host, username, password, true)
 
 		log.Printf("[TRACE] Connecting to Orion")
