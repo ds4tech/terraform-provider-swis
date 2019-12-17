@@ -33,26 +33,39 @@ func resourceIp() *schema.Resource {
 
 func resourceIpCreate(d *schema.ResourceData, m interface{}) error {
     vsphere_vlan := d.Get("vsphere_vlan").(string) //VLAN100_10.141.16.0m24
-    ipaddress := "0.0.0.0"
+    ipaddress := d.Get("ipaddress").(string) //ipaddress
     client := m.(*gosolar.Client)
+    querySubnet := ""
     var response []*Node
 
-    subnetIpAddr := findIP(vsphere_vlan)
-    cidr := string(vsphere_vlan[len(vsphere_vlan)-2:]) //substring last 2 chars
+    if(len(ipaddress)!=0) {
+        querySubnet = fmt.Sprintf("SELECT IpNodeId,IPAddress,Comments,Status,Uri FROM IPAM.IPNode WHERE IPAddress='%s'", ipaddress)
+        response = queryOrionServer(client, querySubnet)
+        log.Printf("[DEBUG] Reserve: IPADDRESS: %v, COMMENTS: %v\n", response[0].IPADDRESS, response[0].COMMENTS)
 
-    log.Printf("[TRACE] vsphere_vlan: %s, subnetIpAddr: %s, cidr: %s", vsphere_vlan, subnetIpAddr, cidr)
-
-    querySubnet := fmt.Sprintf("SELECT  SubnetId,CIDR,Address,AddressMask,GroupTypeText FROM IPAM.Subnet WHERE  Address='%s' AND CIDR=%s", subnetIpAddr, cidr)
-    response = queryOrionServer(client, querySubnet)
-
-    queryIpnode := fmt.Sprintf("SELECT TOP 1 IpNodeId,IPAddress,Comments,Status,Uri FROM IPAM.IPNode WHERE SubnetId='%d' and status=2 AND IPOrdinal BETWEEN 11 AND 254", response[0].SUBNETID)
-    response = queryOrionServer(client, queryIpnode)
-    if(2 == response[0].STATUS) {
-      updateIPNodeStatus(client, response[0].URI, "1") // '1' == ip used
-      ipaddress = response[0].IPADDRESS
+        if(2 == response[0].STATUS) {
+          updateIPNodeStatus(client, response[0].URI, "1", comment) // '1' == ip used
+        } else {
+          log.Fatalf("[DEBUG] Ip address is not available. It has status %v.", response[0].STATUS)
+        }
     } else {
-      log.Printf("[DEBUG] Ip address is not available for specified subnet.")
-      return fmt.Errorf("Error while reserving ip address. None is available for specified subnet.")
+        subnetIpAddr := findIP(vsphere_vlan)
+        cidr := string(vsphere_vlan[len(vsphere_vlan)-2:]) //substring last 2 chars
+
+        log.Printf("[TRACE] vsphere_vlan: %s, subnetIpAddr: %s, cidr: %s", vsphere_vlan, subnetIpAddr, cidr)
+
+        querySubnet = fmt.Sprintf("SELECT  SubnetId,CIDR,Address,AddressMask,GroupTypeText FROM IPAM.Subnet WHERE  Address='%s' AND CIDR=%s", subnetIpAddr, cidr)
+        response = queryOrionServer(client, querySubnet)
+
+        queryIpnode := fmt.Sprintf("SELECT TOP 1 IpNodeId,IPAddress,Comments,Status,Uri FROM IPAM.IPNode WHERE SubnetId='%d' and status=2 AND IPOrdinal BETWEEN 11 AND 254", response[0].SUBNETID)
+        response = queryOrionServer(client, queryIpnode)
+        if(2 == response[0].STATUS) {
+          updateIPNodeStatus(client, response[0].URI, "1") // '1' == ip used
+          ipaddress = response[0].IPADDRESS
+        } else {
+          log.Printf("[DEBUG] Ip address is not available for specified subnet.")
+          return fmt.Errorf("Error while reserving ip address. None is available for specified subnet.")
+        }
     }
 
     d.Set("ipaddress", ipaddress)
