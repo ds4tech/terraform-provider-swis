@@ -1,4 +1,4 @@
-## Terraform provider (plugin) for SolarWings
+# Terraform provider (plugin) for SolarWings
 
 ## Issues and Contributing
 If you find an issue with this provider, please report it. Contributions are welcome.

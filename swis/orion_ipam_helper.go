@@ -31,9 +31,10 @@ func queryOrionServer(client * gosolar.Client, query string) []*Node {
     return data
 }
 
-func updateIPNodeStatus(client * gosolar.Client, uri string, status string) {
+func updateIPNodeStatus(client * gosolar.Client, uri string, status string, comment string) {
     req := map[string]interface{}{
             "Status": status,
+            "Comments": comment,
     }
     _, err := client.Update(uri, req)
     if err != nil {

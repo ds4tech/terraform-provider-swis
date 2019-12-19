@@ -1,6 +1,6 @@
 resource "swis_server" "ip1" {
   vsphere_vlan = var.vsphere_vlan
-  ipaddress = "10.141.16.11"
+  ipaddress = "10.141.16.14"
 #  status = var.status
 }
 

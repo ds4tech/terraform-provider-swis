@@ -36,7 +36,15 @@ func resourceIpCreate(d *schema.ResourceData, m interface{}) error {
     ipaddress := d.Get("ipaddress").(string) //ipaddress
     client := m.(*gosolar.Client)
     querySubnet := ""
+    comment := ""
     var response []*Node
+
+    log.Printf("[DEBUG] Reserve: IPADDRESS: %v", ipaddress)
+/* funkcja powinna dzialac odwrotnie, czyli jest jes polanczenie do trzeba sprawdzic negacje: !
+    if( checkConnectivity(ipaddress) ) {
+        log.Printf("[DEBUG] checkConnectivity finished")
+    }
+*/
 
     if(len(ipaddress)!=0) {
         querySubnet = fmt.Sprintf("SELECT IpNodeId,IPAddress,Comments,Status,Uri FROM IPAM.IPNode WHERE IPAddress='%s'", ipaddress)
@@ -46,7 +54,7 @@ func resourceIpCreate(d *schema.ResourceData, m interface{}) error {
         if(2 == response[0].STATUS) {
           updateIPNodeStatus(client, response[0].URI, "1", comment) // '1' == ip used
         } else {
-          log.Fatalf("[DEBUG] Ip address is not available. It has status %v.", response[0].STATUS)
+          log.Fatalf("[ERROR] Ip address is not available. It has status %v.", response[0].STATUS)
         }
     } else {
         subnetIpAddr := findIP(vsphere_vlan)
@@ -60,10 +68,10 @@ func resourceIpCreate(d *schema.ResourceData, m interface{}) error {
         queryIpnode := fmt.Sprintf("SELECT TOP 1 IpNodeId,IPAddress,Comments,Status,Uri FROM IPAM.IPNode WHERE SubnetId='%d' and status=2 AND IPOrdinal BETWEEN 11 AND 254", response[0].SUBNETID)
         response = queryOrionServer(client, queryIpnode)
         if(2 == response[0].STATUS) {
-          updateIPNodeStatus(client, response[0].URI, "1") // '1' == ip used
+          updateIPNodeStatus(client, response[0].URI, "1", "") // '1' == ip used
           ipaddress = response[0].IPADDRESS
         } else {
-          log.Printf("[DEBUG] Ip address is not available for specified subnet.")
+          log.Printf("[ERROR] Ip address is not available for specified subnet.")
           return fmt.Errorf("Error while reserving ip address. None is available for specified subnet.")
         }
     }
@@ -92,7 +100,7 @@ func resourceIpUpdate(d *schema.ResourceData, m interface{}) error {
     response = queryOrionServer(client, query)
 
     log.Printf("[DEBUG] response: %s, %s", response[0], status)
-    updateIPNodeStatus(client, response[0].URI, status)
+    updateIPNodeStatus(client, response[0].URI, status, "")
 
     //d.Set("ipaddress", ipaddress)
     d.SetId(ipaddress)
@@ -106,7 +114,7 @@ func resourceIpDelete(d *schema.ResourceData, m interface{}) error {
 
     query := fmt.Sprintf("SELECT IpNodeId,IPAddress,Comments,Status,Uri FROM IPAM.IPNode WHERE IPAddress='%s'", ipaddress)
     response = queryOrionServer(client, query)
-    updateIPNodeStatus(client, response[0].URI, "2") // '2' == ip available
+    updateIPNodeStatus(client, response[0].URI, "2", "") // '2' == ip available
 
     d.SetId("")
     return nil
